@@ -1,14 +1,15 @@
 package org.example.ordermenejment.command;
 
+import eticketdemo.coreapi.orderMenegment.api.CreateOrderCommand;
+import eticketdemo.coreapi.orderMenegment.api.id.OrderId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
+import java.util.UUID;
 
 
 @Slf4j
@@ -21,10 +22,25 @@ public class OrderCommandController {
     private final CommandGateway commandGateway;
 
 
-    @PostMapping(value = "create")
-    public Mono<Objects> createOrder() {
+    @PostMapping(value = "create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<OrderId> createOrder(
+            @RequestHeader(value = "client-api-address0", defaultValue = "") String ipAddress,
+            @RequestHeader(value = "User-Agent") String userAgent,
+            @RequestHeader(value = "userId") String userId,
+            @RequestHeader(value = "username") String username,
+            @RequestBody CreateOrderCommand command) throws Exception {
 
-        return Mono.empty();
+        log.info("--------------------------------------------------CreateOrderCommand  [ " + command.getOrderId() + " ]------------------------------------------------------");
+
+        command.setIpAddress(UUID.randomUUID().toString());
+        command.setUserAgent(userAgent);
+        command.setIpAddress(ipAddress);
+
+        command.setUserName(username);
+        command.setUserId(userId);
+
+
+        return Mono.fromFuture(commandGateway.send(command));
     }
 
 }
